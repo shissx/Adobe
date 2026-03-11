@@ -1,4 +1,6 @@
 ﻿// 双色替换-最终稳定版
+#target Illustrator
+app.executeMenuCommand('doc-color-cmyk');
 var myDoc = app.activeDocument;
 
 $.writeln("════════════════════════════");
@@ -10,11 +12,16 @@ var NO_COLOR = "NoColor";
 
 // 定义颜色映射（显示用3位数，实际使用时解析）
 var colorMap = {
-    "010_007_003_000": "015_000_000_000",      // 10_7_3_0 → 15_0_0_0
-    "067_058_055_004": "000_000_000_070",      // 67_58_55_4 → 0_0_0_70
-    "072_016_001_000": "090_000_000_000",      // 72_16_1_0 → 90_0_0_0
-    "076_069_066_029": "000_000_000_100",      // 76_69_66_29 → 0_0_0_100
-    "080_074_072_048": "025_000_000_000"       // 80_74_72_48 → 25_0_0_0
+    "080_074_072_048": "000_000_000_100",   // 标题-黑色文字
+    "010_007_003_000": "000_000_000_015",   // 标题-灰色阴影
+    "067_058_055_004": "000_000_000_070",   // 线条-灰色颜色
+    "076_069_066_029": "000_000_000_100",   // 正文-黑色文字
+    "072_016_001_000": "090_000_000_000",   // 主题-青色阴影
+    
+    "093_088_089_080": "000_000_000_100",   // 主题-其他重点
+    "000_096_095_000": "100_000_000_000",   // 主题-其他重点
+    "000_073_083_000": "100_000_000_000",   // 主题-其他重点
+    "064_034_000_000": "100_000_000_000",   // 主题-其他重点
 };
 
 // 默认值配置
@@ -76,6 +83,16 @@ function padZero(num, length) {
     }
     return str;
 }
+
+//PDF
+function savePDF( file ) {
+    var saveOpts = new PDFSaveOptions();
+    saveOpts.compatibility = PDFCompatibility.ACROBAT4;//兼容PDF1.3
+    saveOpts.preserveEditability = true;//保留AI编辑功能	
+    saveOpts.generateThumbnails = true;//嵌入页面缩略图
+    myDoc.saveAs( file, saveOpts );
+}
+
 
 function main(){
     // 统计文档中的颜色
@@ -346,8 +363,17 @@ function main(){
                 var prefix = skipColors[afterAllColors[i].key] ? "⏭️ " : "";
                 alertMsg += prefix + afterAllColors[i].key + "：" + afterAllColors[i].count + "次\n";
             }
-            
-            alert(alertMsg);
+
+        //处理文字-转曲
+        while (myDoc.textFrames.length != 0) {
+            myDoc.textFrames[0].createOutline(); 
+        }
+
+        //另存为PDF
+        var fpath = myDoc.path; 
+        savePDF( fpath )
+
+        alert(alertMsg);
             
         } catch (e) {
             $.writeln("\n❌ 出错位置：" + e.line);
